@@ -42,6 +42,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $links = $pdo->query('SELECT id, random_id FROM temp_links ORDER BY id DESC')->fetchAll();
 $tasks = $pdo->query('SELECT st.*, tl.random_id FROM sign_tasks st JOIN temp_links tl ON st.temp_link_id=tl.id ORDER BY st.id DESC')->fetchAll();
+
+$recordsStmt = $pdo->prepare("SELECT sr.id FROM sign_records sr WHERE sr.sign_task_id=? AND sr.visitor_id=? LIMIT 1");
+$visitorsStmt = $pdo->prepare('SELECT id, name, company, phone FROM visitors WHERE temp_link_id=? ORDER BY id DESC');
+$signDataMap = [];
+foreach ($tasks as $t) {
+    $visitorsStmt->execute([$t['temp_link_id']]);
+    $rows = [];
+    foreach ($visitorsStmt->fetchAll() as $v) {
+        $recordsStmt->execute([$t['id'], $v['id']]);
+        $isSigned = (bool)$recordsStmt->fetch();
+        $rows[] = [
+            'id' => $v['id'],
+            'name' => $v['name'],
+            'company' => $v['company'],
+            'phone' => $v['phone'],
+            'status' => $isSigned ? '已签到' : '未签到',
+            'signed' => $isSigned,
+        ];
+    }
+    $signDataMap[$t['id']] = $rows;
+}
 ?>
 <!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>管理端-签到任务</title><link rel="stylesheet" href="../assets/style.css"></head><body><div class="container">
 <div class="card"><h2>创建签到任务（二维码）</h2>
@@ -55,12 +76,34 @@ $tasks = $pdo->query('SELECT st.*, tl.random_id FROM sign_tasks st JOIN temp_lin
 <button>确定并生成二维码</button>
 </form>
 </div>
-<div class="card"><h2>签到任务列表</h2><table class="table"><thead><tr><th>任务ID</th><th>访客ID</th><th>次数</th><th>时间</th><th>扫码链接/二维码</th></tr></thead><tbody>
+<div class="card"><h2>签到任务列表</h2><table class="table"><thead><tr><th>任务ID</th><th>访客ID</th><th>次数</th><th>时间</th><th>扫码链接/二维码</th><th>操作</th></tr></thead><tbody>
 <?php foreach ($tasks as $t): $url=app_url('user/sign_entry.php?task_id=' . $t['id']); $qr='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . urlencode($url); ?>
-<tr><td><?= $t['id'] ?></td><td><?= $t['temp_link_id'] ?></td><td><?= $t['total_times'] ?></td><td><?= $t['start_at'] ?> ~ <?= $t['end_at'] ?></td><td><a href="<?= htmlspecialchars($url) ?>" target="_blank"><?= htmlspecialchars($url) ?></a><br><img src="<?= $qr ?>" width="80"></td></tr>
+<tr><td><?= $t['id'] ?></td><td><?= $t['temp_link_id'] ?></td><td><?= $t['total_times'] ?></td><td><?= $t['start_at'] ?> ~ <?= $t['end_at'] ?></td><td><a href="<?= htmlspecialchars($url) ?>" target="_blank"><?= htmlspecialchars($url) ?></a><br><img src="<?= $qr ?>" width="80"></td><td><button type="button" class="secondary data-btn" data-modal="sign-modal-<?= $t['id'] ?>">签到数据</button></td></tr>
 <?php endforeach; ?>
 </tbody></table></div>
 </div>
+
+<?php foreach ($tasks as $t): $rows = $signDataMap[$t['id']] ?? []; ?>
+<div id="sign-modal-<?= $t['id'] ?>" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-head"><h3>签到数据（任务ID：<?= $t['id'] ?>）</h3><button type="button" class="modal-close">×</button></div>
+    <table class="table"><thead><tr><th>访客ID</th><th>姓名</th><th>单位</th><th>手机号</th><th>状态</th></tr></thead><tbody>
+      <?php if (!$rows): ?>
+      <tr><td colspan="5">暂无访客数据</td></tr>
+      <?php else: foreach ($rows as $r): ?>
+      <tr>
+        <td><?= $r['id'] ?></td>
+        <td><?= htmlspecialchars($r['name']) ?></td>
+        <td><?= htmlspecialchars($r['company']) ?></td>
+        <td><?= htmlspecialchars($r['phone']) ?></td>
+        <td><span class="status-text <?= $r['signed'] ? 'status-ok' : 'status-no' ?>"><?= $r['status'] ?></span></td>
+      </tr>
+      <?php endforeach; endif; ?>
+    </tbody></table>
+  </div>
+</div>
+<?php endforeach; ?>
+
 <script>
 const totalTimesEl = document.getElementById('totalTimes');
 const slotContainer = document.getElementById('slotContainer');
@@ -78,5 +121,22 @@ function renderSlots(){
 }
 totalTimesEl.addEventListener('input',renderSlots);
 renderSlots();
+
+document.querySelectorAll('.data-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var modal = document.getElementById(btn.dataset.modal);
+    if (modal) modal.classList.add('show');
+  });
+});
+document.querySelectorAll('.modal-close').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    btn.closest('.modal-overlay').classList.remove('show');
+  });
+});
+document.querySelectorAll('.modal-overlay').forEach(function(mask){
+  mask.addEventListener('click', function(e){
+    if (e.target === mask) mask.classList.remove('show');
+  });
+});
 </script>
 </body></html>
