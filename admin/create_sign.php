@@ -56,7 +56,7 @@ $tasks = $pdo->query('SELECT st.*, tl.random_id FROM sign_tasks st JOIN temp_lin
 </form>
 </div>
 <div class="card"><h2>签到任务列表</h2><table class="table"><thead><tr><th>任务ID</th><th>访客ID</th><th>次数</th><th>时间</th><th>扫码链接/二维码</th></tr></thead><tbody>
-<?php foreach ($tasks as $t): $url='http://' . $_SERVER['HTTP_HOST'] . '/user/sign_entry.php?task_id=' . $t['id']; $qr='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . urlencode($url); ?>
+<?php foreach ($tasks as $t): $url=app_url('user/sign_entry.php?task_id=' . $t['id']); $qr='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . urlencode($url); ?>
 <tr><td><?= $t['id'] ?></td><td><?= $t['temp_link_id'] ?></td><td><?= $t['total_times'] ?></td><td><?= $t['start_at'] ?> ~ <?= $t['end_at'] ?></td><td><a href="<?= htmlspecialchars($url) ?>" target="_blank"><?= htmlspecialchars($url) ?></a><br><img src="<?= $qr ?>" width="80"></td></tr>
 <?php endforeach; ?>
 </tbody></table></div>

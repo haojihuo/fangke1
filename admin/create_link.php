@@ -37,7 +37,7 @@ $links = $pdo->query('SELECT * FROM temp_links ORDER BY id DESC')->fetchAll();
 <h2>已生成链接</h2>
 <table class="table"><thead><tr><th>ID</th><th>随机ID</th><th>有效期</th><th>临时链接</th><th>二维码</th></tr></thead><tbody>
 <?php foreach ($links as $row):
-    $url = 'http://' . $_SERVER['HTTP_HOST'] . '/user/register.php?id=' . $row['id'];
+    $url = app_url('user/register.php?id=' . $row['id']);
     $qr = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . urlencode($url);
 ?>
 <tr>

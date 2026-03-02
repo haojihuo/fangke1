@@ -11,7 +11,7 @@ if (isset($_GET['code'])) {
 
     if (isset($result['openid'])) {
         $openid = $result['openid'];
-        header('Location: http://' . $_SERVER['HTTP_HOST'] . '/user/register.php?id=' . $temp_link_id . '&openid=' . urlencode($openid));
+        header('Location: ' . app_url('user/register.php?id=' . $temp_link_id . '&openid=' . urlencode($openid)));
         exit;
     }
     echo '微信授权失败！';

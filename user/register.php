@@ -64,7 +64,7 @@ document.getElementById('hasCar').addEventListener('change', function(){
 // 微信授权登录
 document.getElementById('wechatAuth').addEventListener('click', function () {
   var appid = '<?php include "../include/config.php"; echo $wechat_appid; ?>';
-  var redirect_uri = encodeURIComponent('http://' + window.location.host + '/user/wechat_callback.php?temp_link_id=<?php echo $_GET["id"]; ?>');
+  var redirect_uri = encodeURIComponent(window.location.origin + '<?= rtrim($app_path, '/') ?>/user/wechat_callback.php?temp_link_id=<?php echo $_GET["id"]; ?>');
   var scope = 'snsapi_userinfo';
   var state = 'STATE';
   var authUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + appid + '&redirect_uri=' + redirect_uri + '&response_type=code&scope=' + scope + '&state=' + state + '#wechat_redirect';

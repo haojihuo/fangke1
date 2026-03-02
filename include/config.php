@@ -4,7 +4,18 @@ $DB_NAME = 'fangke';
 $DB_USER = 'root';
 $DB_PASS = '';
 
-$base_url = 'http://' . $_SERVER['HTTP_HOST'] . '/';
+// 部署在子目录时请修改为实际路径，例如 /fangke1
+$app_path = '/fangke1';
+
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$base_url = $scheme . '://' . $host . rtrim($app_path, '/');
+
+function app_url(string $path = ''): string
+{
+    global $base_url;
+    return $base_url . '/' . ltrim($path, '/');
+}
 
 // 微信公众号配置
 $wechat_appid = 'YOUR_WECHAT_APPID';
