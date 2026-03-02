@@ -78,7 +78,7 @@ foreach ($tasks as $t) {
 </div>
 <div class="card"><h2>签到任务列表</h2><table class="table"><thead><tr><th>任务ID</th><th>访客ID</th><th>次数</th><th>时间</th><th>扫码链接/二维码</th><th>操作</th></tr></thead><tbody>
 <?php foreach ($tasks as $t): $url=app_url('user/sign_entry.php?task_id=' . $t['id']); $qr='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . urlencode($url); ?>
-<tr><td><?= $t['id'] ?></td><td><?= $t['temp_link_id'] ?></td><td><?= $t['total_times'] ?></td><td><?= $t['start_at'] ?> ~ <?= $t['end_at'] ?></td><td><a href="<?= htmlspecialchars($url) ?>" target="_blank"><?= htmlspecialchars($url) ?></a><br><img src="<?= $qr ?>" width="80"></td><td><button type="button" class="secondary data-btn" data-modal="sign-modal-<?= $t['id'] ?>">签到数据</button></td></tr>
+<tr><td><?= $t['id'] ?></td><td><?= $t['temp_link_id'] ?></td><td><?= $t['total_times'] ?></td><td><?= $t['start_at'] ?> ~ <?= $t['end_at'] ?></td><td><a href="<?= htmlspecialchars($url) ?>" target="_blank"><?= htmlspecialchars($url) ?></a><br><img src="<?= $qr ?>" width="80"></td><td><button type="button" class="secondary action-btn" onclick="openModal('sign-modal-<?= $t['id'] ?>')">签到数据</button></td></tr>
 <?php endforeach; ?>
 </tbody></table></div>
 </div>
@@ -86,7 +86,7 @@ foreach ($tasks as $t) {
 <?php foreach ($tasks as $t): $rows = $signDataMap[$t['id']] ?? []; ?>
 <div id="sign-modal-<?= $t['id'] ?>" class="modal-overlay">
   <div class="modal-card">
-    <div class="modal-head"><h3>签到数据（任务ID：<?= $t['id'] ?>）</h3><button type="button" class="modal-close">×</button></div>
+    <div class="modal-head"><h3>签到数据（任务ID：<?= $t['id'] ?>）</h3><button type="button" class="modal-close" onclick="closeModal(this)">×</button></div>
     <table class="table"><thead><tr><th>访客ID</th><th>姓名</th><th>单位</th><th>手机号</th><th>状态</th></tr></thead><tbody>
       <?php if (!$rows): ?>
       <tr><td colspan="5">暂无访客数据</td></tr>
@@ -122,17 +122,17 @@ function renderSlots(){
 totalTimesEl.addEventListener('input',renderSlots);
 renderSlots();
 
-document.querySelectorAll('.data-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    var modal = document.getElementById(btn.dataset.modal);
-    if (modal) modal.classList.add('show');
-  });
-});
-document.querySelectorAll('.modal-close').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    btn.closest('.modal-overlay').classList.remove('show');
-  });
-});
+function openModal(id){
+  var modal = document.getElementById(id);
+  if (modal) modal.classList.add('show');
+}
+function closeModal(btn){
+  var node = btn;
+  while (node && !node.classList.contains('modal-overlay')) {
+    node = node.parentNode;
+  }
+  if (node) node.classList.remove('show');
+}
 document.querySelectorAll('.modal-overlay').forEach(function(mask){
   mask.addEventListener('click', function(e){
     if (e.target === mask) mask.classList.remove('show');

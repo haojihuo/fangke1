@@ -51,3 +51,5 @@ button.secondary{background:var(--primary-soft);color:#111827;border:1px solid v
 .status-text{font-weight:700}
 .status-ok{color:var(--ok)}
 .status-no{color:var(--error)}
+
+.action-btn{width:auto;display:inline-block;padding:8px 12px;font-size:13px}
